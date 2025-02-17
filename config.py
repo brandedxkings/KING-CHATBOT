@@ -16,7 +16,7 @@ UPSTREAM_REPO = getenv("UPSTREAM_REPO", "https://github.com/amritraj78/KING-CHAT
 UPSTREAM_BRANCH = getenv("UPSTREAM_BRANCH", "main")
 SUPPORT_GRP = "ll_KINGDOM_ll"
 UPDATE_CHNL = "ll_IMPERIAL_ll"
-OWNER_USERNAME = "ll_BRANDED_ll"
+OWNER_USERNAME = "IT_AMRIT"
 # GIT TOKEN ( if your edited repo is private)
 GIT_TOKEN = getenv("GIT_TOKEN", "")
     
