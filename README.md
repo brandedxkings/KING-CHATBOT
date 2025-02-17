@@ -64,7 +64,7 @@ Welcome to **KING-CHATBOT**, a Python-powered chatbot application designed for s
 
 ## 📞 Contact
 <p align="center">
-    <a href="https://t.me/ll_BRANDED_ll">
+    <a href="https://t.me/IT_AMRIT">
         <img title="Telegram" src="https://img.shields.io/badge/Telegram-%23000000.svg?&style=for-the-badge&logo=telegram&logoColor=61DAFB">
     </a>
     <a href="https://instagram.com/amrit_raj.9">
