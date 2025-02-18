@@ -127,6 +127,7 @@ class nexichat(Client):
 
     async def user_joined(self, client: Client, chat_member_updated: ChatMemberUpdated):
         for member in chat_member_updated.new_chat_members:
+            LOGGER.info(f"New member joined: {member.mention}")
             bio = (await client.get_users(member.id)).bio
             welcome_message = (
                 "🎉🎉🎉🎉🎉🎉🎉🎉🎉\n\n"
@@ -143,6 +144,7 @@ class nexichat(Client):
 
     async def user_left(self, client: Client, chat_member_updated: ChatMemberUpdated):
         member = chat_member_updated.left_chat_member
+        LOGGER.info(f"Member left: {member.mention}")
         bio = (await client.get_users(member.id)).bio
         goodbye_message = (
             "👋👋👋👋👋👋👋👋👋\n\n"
