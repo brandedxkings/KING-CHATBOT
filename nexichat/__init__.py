@@ -10,8 +10,13 @@ from pyrogram.handlers import ChatMemberUpdatedHandler
 from pyrogram.types import ChatMemberUpdated
 import config
 import uvloop
+import time
 
-# Initialize logging
+ID_CHATBOT = None
+SUDOERS = filters.user()
+CLONE_OWNERS = {}
+uvloop.install()
+
 logging.basicConfig(
     format="[%(asctime)s - %(levelname)s] - %(name)s - %(message)s",
     datefmt="%d-%b-%y %H:%M:%S",
@@ -21,26 +26,21 @@ logging.basicConfig(
 
 logging.getLogger("pyrogram").setLevel(logging.ERROR)
 LOGGER = logging.getLogger(__name__)
-
-# Initialize MongoDB
+boot = time.time()
 mongodb = MongoCli(config.MONGO_URL)
 db = mongodb.Anonymous
 mongo = MongoClient(config.MONGO_URL)
 mongodb = mongo.VIP
-
-# Global variables
-ID_CHATBOT = None
-SUDOERS = filters.user()
-CLONE_OWNERS = {}
-uvloop.install()
-boot = time.time()
+OWNER = config.OWNER_ID
+_boot_ = time.time()
 clonedb = None
 
 def dbb():
-    global db, clonedb
+    global db
+    global clonedb
     clonedb = {}
     db = {}
-
+    
 def sudo():
     global SUDOERS
     OWNER = config.OWNER_ID
@@ -63,10 +63,44 @@ def sudo():
                 SUDOERS.add(x)
     LOGGER.info("Sudoers Loaded.")
 
-# Initialize sudoers
-sudo()
+cloneownerdb = db.clone_owners
 
-class NexiChat(Client):
+async def load_clone_owners():
+    async for entry in cloneownerdb.find():
+        bot_id = entry["bot_id"]
+        user_id = entry["user_id"]
+        CLONE_OWNERS[bot_id] = user_id
+
+async def save_clonebot_owner(bot_id, user_id):
+    await cloneownerdb.update_one(
+        {"bot_id": bot_id},
+        {"$set": {"user_id": user_id}},
+        upsert=True
+    )
+async def get_clone_owner(bot_id):
+    data = await cloneownerdb.find_one({"bot_id": bot_id})
+    if data:
+        return data["user_id"]
+    return None
+
+async def delete_clone_owner(bot_id):
+    await cloneownerdb.delete_one({"bot_id": bot_id})
+    CLONE_OWNERS.pop(bot_id, None)
+
+async def save_idclonebot_owner(clone_id, user_id):
+    await cloneownerdb.update_one(
+        {"clone_id": clone_id},
+        {"$set": {"user_id": user_id}},
+        upsert=True
+    )
+
+async def get_idclone_owner(clone_id):
+    data = await cloneownerdb.find_one({"clone_id": clone_id})
+    if data:
+        return data["user_id"]
+    return None
+
+class nexichat(Client):
     def __init__(self):
         super().__init__(
             name="nexichat",
@@ -83,8 +117,8 @@ class NexiChat(Client):
         self.name = self.me.first_name + " " + (self.me.last_name or "")
         self.username = self.me.username
         self.mention = self.me.mention
-
-        # Register event handlers
+        
+        # Register the event handlers for group join and leave events
         self.add_handler(ChatMemberUpdatedHandler(self.user_joined, filters.chat_member_updated.new_chat_members))
         self.add_handler(ChatMemberUpdatedHandler(self.user_left, filters.chat_member_updated.left_chat_member))
         LOGGER.info("Event handlers for user join and leave registered successfully.")
@@ -134,9 +168,29 @@ class NexiChat(Client):
         except Exception as e:
             LOGGER.error(f"Failed to send goodbye message: {e}")
 
-# Start the bot
-nexichat = NexiChat()
+def get_readable_time(seconds: int) -> str:
+    count = 0
+    ping_time = ""
+    time_list = []
+    time_suffix_list = ["s", "m", "h", "days"]
+    while count < 4:
+        count += 1
+        if count < 3:
+            remainder, result = divmod(seconds, 60)
+        else:
+            remainder, result = divmod(seconds, 24)
+        if seconds == 0 and remainder == 0:
+            break
+        time_list.append(int(result))
+        seconds = int(remainder)
+    for i in range(len(time_list)):
+        time_list[i] = str(time_list[i]) + time_suffix_list[i]
+    if len(time_list) == 4:
+        ping_time += time_list.pop() + ", "
+    time_list.reverse()
+    ping_time += ":".join(time_list)
+    return ping_time
+    
+sudo()
+nexichat = nexichat()
 userbot = Userbot()
-
-if __name__ == "__main__":
-    nexichat.run()
