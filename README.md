@@ -47,7 +47,7 @@ Welcome to **KING-CHATBOT**, a Python-powered chatbot application designed for s
 </h3>
 
 <p align="center">
-    <a href="https://dashboard.heroku.com/new?template=https://github.com/amritraj78/KING-CHATBOT">
+    <a href="https://dashboard.heroku.com/new?template=https://github.com/brandedxkings/KING-CHATBOT">
         <img src="https://img.shields.io/badge/Deploy%20On%20Heroku-green?style=for-the-badge&logo=heroku">
     </a>
 </p>
