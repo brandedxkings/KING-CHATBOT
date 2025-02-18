@@ -6,9 +6,12 @@ from nexichat.userbot.userbot import Userbot
 from motor.motor_asyncio import AsyncIOMotorClient as MongoCli
 from pyrogram import Client, filters
 from pyrogram.enums import ParseMode
+from pyrogram.handlers import ChatMemberUpdatedHandler
+from pyrogram.types import ChatMemberUpdated
 import config
 import uvloop
 import time
+
 ID_CHATBOT = None
 SUDOERS = filters.user()
 CLONE_OWNERS = {}
@@ -31,6 +34,7 @@ mongodb = mongo.VIP
 OWNER = config.OWNER_ID
 _boot_ = time.time()
 clonedb = None
+
 def dbb():
     global db
     global clonedb
@@ -96,7 +100,6 @@ async def get_idclone_owner(clone_id):
         return data["user_id"]
     return None
 
-    
 class nexichat(Client):
     def __init__(self):
         super().__init__(
@@ -115,8 +118,44 @@ class nexichat(Client):
         self.username = self.me.username
         self.mention = self.me.mention
         
+        # Register the event handlers for group join and leave events
+        self.add_handler(ChatMemberUpdatedHandler(self.user_joined, filters.chat_member_updated.new_chat_members))
+        self.add_handler(ChatMemberUpdatedHandler(self.user_left, filters.chat_member_updated.left_chat_member))
+
     async def stop(self):
         await super().stop()
+
+    async def user_joined(self, client: Client, chat_member_updated: ChatMemberUpdated):
+        for member in chat_member_updated.new_chat_members:
+            bio = (await client.get_users(member.id)).bio
+            welcome_message = (
+                "🎉🎉🎉🎉🎉🎉🎉🎉🎉\n\n"
+                f"🌟 Welcome {member.mention} 🌟\n\n"
+                f"👤 Name: {member.first_name} {member.last_name or ''}\n"
+                f"🔗 Username: @{member.username}\n"
+                f"📜 Bio: {bio or 'No bio available'}\n\n"
+                "🎉🎉🎉🎉🎉🎉🎉🎉🎉"
+            )
+            await client.send_message(
+                chat_id=chat_member_updated.chat.id,
+                text=welcome_message
+            )
+
+    async def user_left(self, client: Client, chat_member_updated: ChatMemberUpdated):
+        member = chat_member_updated.left_chat_member
+        bio = (await client.get_users(member.id)).bio
+        goodbye_message = (
+            "👋👋👋👋👋👋👋👋👋\n\n"
+            f"💔 Goodbye {member.mention} 💔\n\n"
+            f"👤 Name: {member.first_name} {member.last_name or ''}\n"
+            f"🔗 Username: @{member.username}\n"
+            f"📜 Bio: {bio or 'No bio available'}\n\n"
+            "👋👋👋👋👋👋👋👋👋"
+        )
+        await client.send_message(
+            chat_id=chat_member_updated.chat.id,
+            text=goodbye_message
+        )
 
 def get_readable_time(seconds: int) -> str:
     count = 0
